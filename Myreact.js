@@ -52,6 +52,27 @@ export function useEffect(callback,dependencies) {
 }
 
 
+export function useMemo(callback, dependencies) {
+    const id=globalid
+    globalid++
+    const parent = globalParent
+    return (() => {
+        const { cache } = componentState.get(parent)
+        if (cache[id] === undefined) {
+            cache[id] ={ dependencies: undefined}
+        }
+        const dependenciesChanged = dependencies == undefined || dependencies.some((dependency, i) => {
+            return cache[id].dependencies==undefined||cache[id].dependencies[i]!=dependency
+        })
+        if (dependenciesChanged) {
+            cache[id].value = callback()
+            cache[id].dependencies=dependencies
+        }
+        return cache[id].value
+    })()
+}
+
+
 export function render(component, props, parent) {
     const state = componentState.get(parent) || { cache: [] }
     componentState.set(parent, { ...state, component, props })
