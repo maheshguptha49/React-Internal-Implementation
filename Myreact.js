@@ -28,7 +28,28 @@ export function useState(initialState) {
     })()
 }
 
+export function useEffect(callback,dependencies) {
+    const id = globalid
+    globalid++
+    const parent=globalParent
+    return (() => {
+        const { cache } = componentState.get(parent)
+    if (cache[id] === undefined) {
+        cache[id]={dependencies:undefined}
+        }
+        //checking wheather dependencies are changed or not
+        const dependenciesChanged = dependencies == undefined || dependencies.some((dependency, i) => {
+        return cache[id].dependencies==undefined||cache[id].dependencies[i]!==dependency
+        })
+        //if dependencies are changed we will execute whatever is in the callback function 
+        if (dependenciesChanged===true) {
+            if(cache[id].cleanup!==undefined)cache[id].cleanup()
+            cache[id].cleanup = callback()
+            cache[id].dependencies=dependencies
+        }
 
+    })()
+}
 
 
 export function render(component, props, parent) {
